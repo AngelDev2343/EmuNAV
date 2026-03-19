@@ -95,7 +95,7 @@ EmuNav/
 
 ## 🛠️ Estado del proyecto
 
-- **Estado:** Beta
+- **Estado:** Estable
 - **Naturaleza:** Experimental / Personal
 
 ### Limitaciones conocidas
@@ -111,9 +111,3 @@ EmuNav/
 - **Desmond DS** — motor de emulación de Nintendo DS que corre en el navegador vía WebAssembly
 - **Press Start 2P** / **Nunito** — tipografías vía Google Fonts
 - **EmuNav UI** — Interfaz y estilos por Angel
-
----
-
-## 🔗 Relacionado
-
-- 🤖 [WhyAI](https://github.com/AngelSPerez/ia-offline) — IA generativa híbrida offline/online en el navegador, también por Angel
