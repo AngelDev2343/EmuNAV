@@ -45,7 +45,8 @@
 
     <div class="game-wrapper">
         <div class="videogame-container" id="gameContainer">
-            <iframe class="videogame" id="gameFrame" src="emulator.html" frameborder="0" allowfullscreen></iframe>
+            <iframe class="videogame" id="gameFrame" src="emulator.html"
+                    frameborder="0" allowfullscreen tabindex="0"></iframe>
         </div>
         <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla completa">
             <svg id="fsIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -62,6 +63,7 @@
     </footer>
 
     <script>
+        /* ── Fullscreen ── */
         const iconExpand = `
             <polyline points="15 3 21 3 21 9"/>
             <polyline points="9 21 3 21 3 15"/>
@@ -89,6 +91,54 @@
             if (!document.fullscreenElement) {
                 document.getElementById('fsIcon').innerHTML = iconExpand;
             }
+        });
+
+        /* ── Keyboard input fix ── */
+        const GAME_KEYS = new Set([
+            'KeyW','KeyA','KeyS','KeyD',        // D-Pad
+            'KeyJ','KeyK','KeyU','KeyI',        // A B X Y
+            'KeyQ','KeyE',                      // L R
+            'Enter','ShiftLeft','ShiftRight'    // Start Select
+        ]);
+
+        function forwardKeyEvent(e) {
+            const frame = document.getElementById('gameFrame');
+
+            // Si el foco ya está dentro del iframe, el emulador recibe el evento solo
+            if (document.activeElement === frame) return;
+
+            if (!GAME_KEYS.has(e.code)) return;
+
+            // Evitar scroll u otros comportamientos del padre
+            e.preventDefault();
+
+            try {
+                frame.contentWindow.dispatchEvent(
+                    new KeyboardEvent(e.type, {
+                        key:        e.key,
+                        code:       e.code,
+                        keyCode:    e.keyCode,
+                        which:      e.which,
+                        bubbles:    true,
+                        cancelable: true,
+                        shiftKey:   e.shiftKey,
+                        ctrlKey:    e.ctrlKey,
+                        altKey:     e.altKey,
+                    })
+                );
+            } catch (err) {
+                // Solo ocurre si el iframe fuera cross-origin (no es el caso aquí)
+                console.warn('No se pudo redirigir el evento de teclado:', err);
+            }
+        }
+
+        // capture:true para interceptar antes que cualquier otro listener de la página
+        document.addEventListener('keydown', forwardKeyEvent, true);
+        document.addEventListener('keyup',   forwardKeyEvent, true);
+
+        // Dar foco al iframe una vez que cargue, así el emulador recibe input directo
+        document.getElementById('gameFrame').addEventListener('load', () => {
+            document.getElementById('gameFrame').focus();
         });
     </script>
 </body>
