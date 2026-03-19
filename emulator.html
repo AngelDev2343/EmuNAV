@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desmond DS Emulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; /* Ocupa toda la altura de la ventana */
+            background-color: #333333; /* Fondo oscuro */
+            color: #eee;
+            overflow: hidden; /* Evita barras de desplazamiento */
+            box-sizing: border-box;
+        }
+
+        /* Contenedor principal para los mensajes y controles, visible inicialmente */
+        .initial-content-wrapper {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            display: flex; /* Para centrar los elementos internos */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 10px; /* Pequeño margen para no pegarse a los bordes si hay scroll */
+            max-width: 90vw; /* Asegura que no se desborde en pantallas pequeñas */
+        }
+
+        .message {
+            margin-bottom: 15px;
+            color: #fff;
+            max-width: 100%; /* Asegura que el texto no se desborde */
+        }
+
+        .message p {
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .controls input[type="file"] {
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #444;
+            color: #eee;
+            width: 80%;
+            max-width: 300px;
+            box-sizing: border-box; /* Incluye padding en el ancho */
+        }
+
+        .controls button {
+            background-color: #4CAF50; /* Verde */
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+            width: 80%;
+            max-width: 300px;
+            box-sizing: border-box; /* Incluye padding en el ancho */
+        }
+
+        .controls button:hover {
+            background-color: #45a049;
+        }
+
+        .controls button:disabled {
+            background-color: #777;
+            cursor: not-allowed;
+        }
+
+        /* Contenedor del emulador */
+        #emulator-container {
+            /* Dimensiones basadas en el tamaño nativo de 2 pantallas (256x192 cada una) = 512x192 */
+            width: 256; /* Escalado de 512px para mayor visibilidad (aprox 1.75x) */
+            height: 194px; /* Calculado como 900 * (192/512) = 900 * 0.375 = 337.5px */
+            
+            background-color: #000;
+            border: 2px solid #555;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            display: none; /* Oculto por defecto */
+            /* Para que ocupe el ancho máximo posible sin desbordarse en pantallas pequeñas */
+            max-width: 95vw; 
+            max-height: 95vh;
+            /* Usamos aspect-ratio para mantener la proporción si las max-width/height entran en juego */
+            aspect-ratio: 512 / 192; /* O 8 / 3 */
+        }
+
+        desmond-player {
+            width: 100%;
+            height: 100%;
+            display: block; /* Asegura que ocupe todo el espacio */
+            /* desmond.js se encargará del escalado interno del canvas */
+        }
+    </style>
+</head>
+<body>
+    <div id="initial-content" class="initial-content-wrapper">
+        <div class="message">
+            <p>
+                <strong>Para usar este emulador, necesitarás una ROM de Nintendo DS (.nds). <br/><br/></strong>
+            </p>
+            <p id="dynamic-message">Cargando emulador... Por favor, espera.</p>
+        </div>
+
+        <div class="controls">
+            <input type="file" id="romFile" accept=".nds" disabled>
+            <button id="loadRomButton" disabled>Cargar ROM</button>
+        </div>
+    </div>
+
+    <div id="emulator-container">
+        <desmond-player id="player" orientation="horizontal"></desmond-player>
+    </div>
+
+    <script src="desmond.min.js"></script>
+
+    <script>
+        console.log('Script personalizado cargado.'); // DEBUG
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded disparado. Iniciando configuración...'); // DEBUG
+
+            const romFileInput = document.getElementById('romFile');
+            const loadRomButton = document.getElementById('loadRomButton');
+            const desmondPlayerElement = document.getElementById('player');
+            const dynamicMessageDiv = document.getElementById('dynamic-message'); // Cambiado para el mensaje dinámico
+            const initialContentWrapper = document.getElementById('initial-content'); // Nuevo: Referencia al wrapper
+
+            setTimeout(() => {
+                console.log('DEBUG: Ejecutando lógica de inicialización con retardo...'); // DEBUG
+
+                if (!desmondPlayerElement) {
+                    console.error("Error: El elemento <desmond-player> no se encontró en el DOM.");
+                    alert("Error al inicializar el emulador. Elemento no encontrado.");
+                    dynamicMessageDiv.textContent = 'Error: Elemento de emulador no encontrado.';
+                    return;
+                }
+
+                if (typeof desmondPlayerElement.loadURL === 'function') {
+                    console.log('ÉXITO: desmondPlayerElement.loadURL ES una función. Emulador listo.'); // DEBUG
+                    dynamicMessageDiv.textContent = 'Emulador listo. Por favor, selecciona una ROM.';
+                    romFileInput.disabled = false; // Habilitamos el input de archivo
+                    console.log('DEBUG: romFileInput habilitado.'); // DEBUG
+                    setupRomLoadingListeners(romFileInput, loadRomButton, desmondPlayerElement, dynamicMessageDiv, initialContentWrapper); // Pasar el wrapper
+                } else {
+                    console.error('ERROR: desmondPlayerElement.loadURL NO es una función después del retardo. Objeto:', desmondPlayerElement); // DEBUG
+                    alert("Error crítico: El método 'loadURL' del emulador no está disponible. Consulta la consola.");
+                    dynamicMessageDiv.textContent = 'Error: El emulador no se inicializó correctamente o el método de carga no es el esperado.';
+                    romFileInput.disabled = true;
+                    loadRomButton.disabled = true;
+                }
+            }, 1000); // Esperamos 1 segundo.
+
+            function setupRomLoadingListeners(romFileInput, loadRomButton, playerElement, msgDiv, contentWrapper) {
+                console.log('setupRomLoadingListeners ejecutada.'); // DEBUG
+
+                let selectedFile = null;
+
+                romFileInput.addEventListener('change', (event) => {
+                    console.log('Evento change disparado en romFileInput.'); // DEBUG
+                    selectedFile = event.target.files[0];
+                    console.log('Archivo seleccionado:', selectedFile); // DEBUG
+
+                    if (selectedFile) {
+                        if (loadRomButton) {
+                           loadRomButton.disabled = false;
+                           msgDiv.textContent = `Archivo seleccionado: ${selectedFile.name}. Haz clic en Cargar ROM.`;
+                           console.log('Botón "Cargar ROM" habilitado.'); // DEBUG
+                        } else {
+                            console.error('DEBUG: loadRomButton no encontrado al habilitar.'); // DEBUG
+                        }
+                    } else {
+                        if (loadRomButton) {
+                            loadRomButton.disabled = true;
+                            msgDiv.textContent = 'Por favor, selecciona una ROM.';
+                            console.log('No se seleccionó archivo o selectedFile es nulo. Botón deshabilitado.'); // DEBUG
+                        }
+                    }
+                });
+
+                loadRomButton.addEventListener('click', () => {
+                    console.log('Botón Cargar ROM clickeado.'); // DEBUG
+                    if (selectedFile) {
+                        const objectURL = URL.createObjectURL(selectedFile);
+                        console.log('DEBUG: Creado Object URL:', objectURL); // DEBUG
+                        try {
+                            playerElement.loadURL(objectURL);
+                            console.log('ROM cargada usando Object URL:', selectedFile.name); // DEBUG
+                            msgDiv.textContent = `ROM ${selectedFile.name} cargada.`;
+
+                            // Ocultar la sección de carga y mostrar el emulador
+                            contentWrapper.style.display = 'none';
+                            document.getElementById('emulator-container').style.display = 'block';
+
+                        } catch (e) {
+                            console.error("Error al llamar a playerElement.loadURL con Object URL:", e); // DEBUG
+                            alert("Error al cargar la ROM: " + e.message);
+                            msgDiv.textContent = 'Error al cargar la ROM. Consulta la consola.';
+                            loadRomButton.disabled = false;
+                            romFileInput.disabled = false;
+                        }
+                        loadRomButton.disabled = true;
+                        romFileInput.disabled = true;
+                    } else {
+                        alert('Por favor, selecciona un archivo .nds primero.');
+                    }
+                });
+
+                playerElement.addEventListener('start', () => {
+                    console.log('Juego iniciado.'); // DEBUG
+                    // Ya se ocultó el wrapper y se mostró el emulador al cargar la ROM
+                });
+                playerElement.addEventListener('pause', () => {
+                    console.log('Juego pausado.'); // DEBUG
+                    msgDiv.textContent = 'Juego pausado.'; // Esto no se verá si el wrapper está oculto, pero el log es útil
+                });
+                playerElement.addEventListener('error', (e) => {
+                    console.error('Error del emulador durante la ejecución:', e.detail.message); // DEBUG
+                    alert('Error durante el juego: ' + e.detail.message + '. Asegúrate de que es un archivo .nds válido.');
+                    msgDiv.textContent = 'Error durante el juego. Consulta la consola.';
+                    loadRomButton.disabled = false;
+                    romFileInput.disabled = false;
+                    // Si hay un error durante la ejecución, volver a mostrar los controles
+                    contentWrapper.style.display = 'flex'; // Usar 'flex' porque el wrapper tiene flexbox
+                    document.getElementById('emulator-container').style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

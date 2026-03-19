@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600&display=swap');
+
+:root {
+    --bg: #0d0f1a;
+    --surface: #13161f;
+    --accent: #00d4ff;
+    --text: #c9d1e8;
+    --text-muted: #4a5280;
+    --border: rgba(0,212,255,0.15);
+    --radius: 10px;
+
+    /* 
+     * --trim: recorta el marco blanco del emulador (body margin del iframe).
+     * Ajusta este valor si el borde blanco sigue visible o se recorta de más.
+     * El emulador tiene ~8px de margen por defecto en cada lado.
+     */
+    --trim: 30px;
+
+    --scale: 1.8;
+    --base-w: 600px;
+    --base-h: 400px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    padding: 32px 20px 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+}
+
+/* ── Header ── */
+header { text-align: center; }
+
+h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(1.4rem, 4vw, 2.4rem);
+    color: var(--accent);
+    letter-spacing: 3px;
+}
+
+header p {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+/* ── Controls ── */
+.controls-details {
+    width: 100%;
+    max-width: 760px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+}
+
+.controls-details summary {
+    padding: 14px 20px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: color 0.2s;
+}
+.controls-details summary::-webkit-details-marker { display: none; }
+.controls-details summary:hover { color: var(--accent); }
+.controls-details[open] summary { border-bottom: 1px solid var(--border); }
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 18px 20px;
+    gap: 12px;
+}
+
+.group-label {
+    display: block;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.controls-details ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.controls-details li { font-size: 0.88rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
+
+kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px;
+    background: #1e2235;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 2px solid rgba(255,255,255,0.06);
+    border-radius: 5px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.48rem;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+/* ── Game wrapper (contenedor + botón fullscreen) ── */
+.game-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* 
+ * Cómo funciona el recorte del marco blanco:
+ * El iframe se agranda con --trim en cada lado (margen negativo),
+ * luego se escala. El contenedor tiene overflow:hidden
+ * así que el borde blanco queda oculto fuera del área visible.
+ *
+ * Tamaño escalado visible = (base - 2*trim) * scale
+ */
+.videogame-container {
+    width: calc((var(--base-w) - 2 * var(--trim)) * var(--scale));
+    height: calc((var(--base-h) - 2 * var(--trim)) * var(--scale));
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: 0 0 32px rgba(0,212,255,0.12), 0 16px 48px rgba(0,0,0,0.5);
+}
+
+.videogame {
+    /* El iframe es más grande de lo necesario para que al recortar
+       los --trim px de cada lado desaparezcan los bordes blancos */
+    width: var(--base-w);
+    height: var(--base-h);
+    position: absolute;
+    /* desplazar negativamente --trim para centrar y recortar el borde */
+    top: calc(-1 * var(--trim) * var(--scale));
+    left: calc(-1 * var(--trim) * var(--scale));
+    transform: scale(var(--scale));
+    transform-origin: top left;
+    border: none;
+    display: block;
+}
+
+/* ── Fullscreen button ── */
+.fullscreen-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+    background: rgba(13,15,26,0.75);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    z-index: 10;
+}
+.fullscreen-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.08);
+}
+
+/* ── Footer ── */
+footer {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+    :root { --scale: 1.1; }
+    .controls-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+    :root { --scale: 0.82; }
+    .controls-grid { grid-template-columns: 1fr; }
+}
