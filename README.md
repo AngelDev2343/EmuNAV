@@ -22,6 +22,15 @@ Ofrecer una forma sencilla de correr juegos de Nintendo DS en el navegador, con 
 
 ---
 
+<div align="center">
+
+[🎮 Probar ahora](https://angeldev2343.github.io/EmuNAV/)
+
+Si quieres probarlo y no tienes ROMS, puedes descargar las que se encuentran en este repositorio son 100% legales.
+</div>
+
+---
+
 ## 🖥️ Estructura del proyecto
 
 ```
