@@ -1,6 +1,5 @@
 # 🎮 EmuNav
 
-![Status](https://img.shields.io/badge/status-beta-orange)
 ![Platform](https://img.shields.io/badge/platform-browser--only-blue)
 ![DS](https://img.shields.io/badge/consola-Nintendo%20DS-red)
 ![License](https://img.shields.io/badge/license-all%20rights%20reserved-lightgrey)
